@@ -69,10 +69,11 @@ void CAN_Motordrive(int16_t vel[]);
 /* USER CODE BEGIN 0 */
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
 
-	uint8_t RxData[8];
 	if (hfdcan == &hfdcan3) {
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan3_RxHeader, fdcan3_RxData) != HAL_OK) {
 			Error_Handler();
+
+			printf("Receive message from C610\r\n");
 		}
 	}
 }
@@ -81,6 +82,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		if(htim == &htim17){
 			int16_t vel[4] = {2000, 2000, 2000, 2000};
 			CAN_Motordrive(vel);
+			printf("Timer callback\r\n");
 		}
 	}
 }
@@ -92,8 +94,8 @@ void CAN_Motordrive(int16_t vel[])
 	for(i=0; i<4; i++){
 		if(vel[i]<-10000)vel[i]=-10000;
 		else if(vel[i]>10000)vel[i]=10000;
-		TxData[i*2]=vel[i]>>8;//‰∏ä‰Ωç„Éì?ÔøΩÔøΩ??ÔøΩÔøΩ?
-		TxData[i*2+1]=vel[i]&0x00FF;//‰∏ã‰Ωç„Éì?ÔøΩÔøΩ??ÔøΩÔøΩ?
+		TxData[i*2]=vel[i]>>8;//‰∏ä‰Ωç„Éì???øΩ?øΩ??øΩ?øΩ????øΩ?øΩ??øΩ?øΩ?
+		TxData[i*2+1]=vel[i]&0x00FF;//‰∏ã‰Ωç„Éì???øΩ?øΩ??øΩ?øΩ????øΩ?øΩ??øΩ?øΩ?
 	}
 
 
@@ -113,9 +115,10 @@ void CAN_Motordrive(int16_t vel[])
 	//HAL_Delay(10);
 }
 
-int __io_putchar(int ch) {
-    HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 100);
-    return ch;
+int _write(int file, char *ptr, int len)
+{
+    HAL_UART_Transmit(&hlpuart1,(uint8_t *)ptr,len,10);
+    return len;
 }
 /* USER CODE END 0 */
 
@@ -126,7 +129,7 @@ int __io_putchar(int ch) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	setbuf(stdout, NULL);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -152,7 +155,8 @@ int main(void)
   MX_FDCAN3_Init();
   MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("Initialized\r\n");
+  HAL_TIM_Base_Start_IT(&htim17);
   /* USER CODE END 2 */
 
   /* Infinite loop */
