@@ -72,16 +72,18 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 	if (hfdcan == &hfdcan3) {
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan3_RxHeader, fdcan3_RxData) != HAL_OK) {
 			Error_Handler();
-
-			printf("Receive message from C610\r\n");
 		}
+
+
+		printf("Receive message from C610\r\n");
+
 	}
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	{
 		if(htim == &htim17){
 			int16_t vel[4] = {2000, 2000, 2000, 2000};
-			//CAN_Motordrive(vel);
+			CAN_Motordrive(vel);
 			printf("Timer callback\r\n");
 		}
 	}
@@ -130,7 +132,7 @@ int _write(int file, char *ptr, int len)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	setbuf(stdout, NULL);
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -139,6 +141,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  setbuf(stdout, NULL);
 
   /* USER CODE END Init */
 
@@ -298,6 +301,7 @@ static void MX_FDCAN3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN FDCAN3_Init 2 */
+
   	FDCAN_FilterTypeDef sFilterConfig;
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;
 	sFilterConfig.FilterIndex = 0;
@@ -307,17 +311,18 @@ static void MX_FDCAN3_Init(void)
 	sFilterConfig.FilterID2 = 0x7FC;
 
 	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
-	Error_Handler();
+		Error_Handler();
 	}
 	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK) {
-	Error_Handler();
+		Error_Handler();
 	}
 
 	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
-	Error_Handler();
+		Error_Handler();
 	}
+	/*
 	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-	Error_Handler();
+		Error_Handler();
 	}
 
   /* USER CODE END FDCAN3_Init 2 */
