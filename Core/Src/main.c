@@ -81,7 +81,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	{
 		if(htim == &htim17){
 			int16_t vel[4] = {2000, 2000, 2000, 2000};
-			CAN_Motordrive(vel);
+			//CAN_Motordrive(vel);
 			printf("Timer callback\r\n");
 		}
 	}
@@ -94,8 +94,8 @@ void CAN_Motordrive(int16_t vel[])
 	for(i=0; i<4; i++){
 		if(vel[i]<-10000)vel[i]=-10000;
 		else if(vel[i]>10000)vel[i]=10000;
-		TxData[i*2]=vel[i]>>8;//ä¸Šä½ãƒ“???¿½?¿½??¿½?¿½????¿½?¿½??¿½?¿½?
-		TxData[i*2+1]=vel[i]&0x00FF;//ä¸‹ä½ãƒ“???¿½?¿½??¿½?¿½????¿½?¿½??¿½?¿½?
+		TxData[i*2]=vel[i]>>8;//ä¸Šä½ãƒ“???ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½????ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?
+		TxData[i*2+1]=vel[i]&0x00FF;//ä¸‹ä½ãƒ“???ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½????ï¿½ï¿½?ï¿½ï¿½??ï¿½ï¿½?ï¿½ï¿½?
 	}
 
 
@@ -108,6 +108,7 @@ void CAN_Motordrive(int16_t vel[])
 	fdcan3_TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	fdcan3_TxHeader.MessageMarker = 0;
 	fdcan3_TxHeader.Identifier = DJI_CANID_TX0;
+
 	if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &fdcan3_TxHeader, TxData) != HAL_OK) {
 		/* Transmission request Error */
 		Error_Handler();
