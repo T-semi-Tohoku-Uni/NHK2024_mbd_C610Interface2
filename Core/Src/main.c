@@ -73,8 +73,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan3_RxHeader, fdcan3_RxData) != HAL_OK) {
 			Error_Handler();
 		}
-
-
 		printf("Receive message from C610\r\n");
 
 	}
@@ -96,8 +94,8 @@ void CAN_Motordrive(int16_t vel[])
 	for(i=0; i<4; i++){
 		if(vel[i]<-10000)vel[i]=-10000;
 		else if(vel[i]>10000)vel[i]=10000;
-		TxData[i*2]=vel[i]>>8;//上位ビ???��?��??��?��????��?��??��?��?
-		TxData[i*2+1]=vel[i]&0x00FF;//下位ビ???��?��??��?��????��?��??��?��?
+		TxData[i*2]=vel[i]>>8;//上位ビ????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��?
+		TxData[i*2+1]=vel[i]&0x00FF;//下位ビ????��?��??��?��???��?��??��?��?????��?��??��?��???��?��??��?��?
 	}
 
 
@@ -293,7 +291,7 @@ static void MX_FDCAN3_Init(void)
   hfdcan3.Init.DataSyncJumpWidth = 1;
   hfdcan3.Init.DataTimeSeg1 = 1;
   hfdcan3.Init.DataTimeSeg2 = 1;
-  hfdcan3.Init.StdFiltersNbr = 0;
+  hfdcan3.Init.StdFiltersNbr = 1;
   hfdcan3.Init.ExtFiltersNbr = 0;
   hfdcan3.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan3) != HAL_OK)
@@ -310,18 +308,18 @@ static void MX_FDCAN3_Init(void)
 	sFilterConfig.FilterID1 = DJI_CANID_TX0;
 	sFilterConfig.FilterID2 = 0x7FC;
 
-	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
+	if (HAL_FDCAN_ConfigFilter(&hfdcan3, &sFilterConfig) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK) {
+	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan3, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK) {
 		Error_Handler();
 	}
 
-	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
+	if (HAL_FDCAN_Start(&hfdcan3) != HAL_OK) {
 		Error_Handler();
 	}
-	/*
-	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+
+	if (HAL_FDCAN_ActivateNotification(&hfdcan3, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
 		Error_Handler();
 	}
 
