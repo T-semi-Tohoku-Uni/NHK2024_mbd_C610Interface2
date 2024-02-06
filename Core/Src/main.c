@@ -52,6 +52,10 @@ TIM_HandleTypeDef htim17;
 FDCAN_TxHeaderTypeDef fdcan3_TxHeader;
 FDCAN_RxHeaderTypeDef fdcan3_RxHeader;
 uint8_t 			  fdcan3_RxData[8];
+
+FDCAN_TxHeaderTypeDef fdcan1_TxHeader;
+FDCAN_RxHeaderTypeDef fdcan1_RxHeader;
+uint8_t 			  fdcan1_RxData[8];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,6 +78,11 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			Error_Handler();
 		}
 		//printf("Receive message from C610\r\n");
+	}
+	if(hfdcan == &hfdcan1){
+		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan1_RxHeader, fdcan1_RxData) != HAL_OK) {
+			Error_Handler();
+		}
 	}
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
