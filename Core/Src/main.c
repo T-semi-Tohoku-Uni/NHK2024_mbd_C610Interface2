@@ -37,7 +37,9 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define WHEEL_DIAMETER 100 //[mm]
+#define WHEELBASE_LEN 300 //[mm]
+#define TREAD_LEN 200//[mm]
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -56,6 +58,27 @@ uint8_t 			  fdcan3_RxData[8];
 FDCAN_TxHeaderTypeDef fdcan1_TxHeader;
 FDCAN_RxHeaderTypeDef fdcan1_RxHeader;
 uint8_t 			  fdcan1_RxData[8];
+
+typedef struct{
+	float actPos[3];
+	float trgPos[3];
+	float outPos[3];
+	float actVel[3];
+	float trgVel[3];
+	float outVel[3];
+} robotPosStatus;
+
+typedef struct{
+	uint16_t CANID;
+	uint8_t motorID;
+	float trgVel;
+	float actVel;
+	float outVel;
+	float angle;//[rad]
+}motor;
+
+robotPosStatus gRobotPos;
+motor gMotor[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,21 +94,40 @@ void CAN_Motordrive(int16_t vel[]);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void InverseKinematics(robotPosStatus *robotPos, motor wheelMotor[]){
+	//座標変換行�??
 
+	float wheelParam = (WHEELBASE_LEN + TREAD_LEN) / 2;
+	const float A[4][3] = {
+			{-200,  200, wheelParam},
+			{-200, -200, wheelParam},
+			{ 200, -200, wheelParam},
+			{ 200,  200, wheelParam}
+	};
+
+	for(uint8_t i=0; i<4; i++){
+		wheelMotor[i].trgVel = 0;
+
+		for(uint8_t j=0; j<3; j++){
+			wheelMotor[i].trgVel += A[i][j] * robotPos->trgVel[j] / WHEEL_DIAMETER;
+		}
+		printf("%d:%f\r\n", i, wheelMotor[i].trgVel);
+	}
+}
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
 
-	printf("FIFO0 callback\r\n");
+	//printf("FIFO0 callback\r\n");
 	if(hfdcan == &hfdcan1){
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan1_RxHeader, fdcan1_RxData) != HAL_OK) {
 			Error_Handler();
 		}
-		printf("RxData: %x\r\n", fdcan1_RxData[0]);
+		//printf("RxData: %x\r\n", fdcan1_RxData[0]);
 	}
 }
 
 void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs) {
-	printf("FIFO1 callback\r\n");
+	//printf("FIFO1 callback\r\n");
 	if (hfdcan == &hfdcan3) {
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &fdcan3_RxHeader, fdcan3_RxData) != HAL_OK) {
 			Error_Handler();
@@ -97,7 +139,16 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	{
 		if(htim == &htim17){
-			int16_t vel[4] = {-400, 400, 400, -400};
+			for(uint8_t i=0; i<3; i++){
+				gRobotPos.trgVel[i] = fdcan1_RxData[i] - 127;
+			}
+
+			InverseKinematics(&gRobotPos, gMotor);
+			int16_t vel[4] = {};
+			uint8_t gain = 4;
+			for(uint8_t i=0; i<4; i++){
+				vel[i] = gain * gMotor[i].trgVel;
+			}
 			CAN_Motordrive(vel);
 			//printf("Timer callback\r\n");
 		}
@@ -176,6 +227,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   printf("Initialized\r\n");
   HAL_TIM_Base_Start_IT(&htim17);
+  for(uint8_t i=0; i<4; i++){
+	  gMotor[i].trgVel = 0;
+  }
+  gRobotPos.trgVel[0] = 0;
+  gRobotPos.trgVel[1] = 0;
+  gRobotPos.trgVel[2] = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
