@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "DJI_CANIDList.h"
+#include "R2CANIDList.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,6 +123,12 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &fdcan1_RxHeader, fdcan1_RxData) != HAL_OK) {
 			Error_Handler();
 		}
+		if(fdcan1_RxHeader.Identifier == CANID_ROBOT_VEL){
+			for(uint8_t i=0; i<3; i++){
+				gRobotPos.trgVel[i] = fdcan1_RxData[i] - 127;
+			}
+		}
+
 		//printf("RxData: %x\r\n", fdcan1_RxData[0]);
 	}
 }
@@ -139,9 +146,7 @@ void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	{
 		if(htim == &htim17){
-			for(uint8_t i=0; i<3; i++){
-				gRobotPos.trgVel[i] = fdcan1_RxData[i] - 127;
-			}
+
 
 			InverseKinematics(&gRobotPos, gMotor);
 			int16_t vel[4] = {};
@@ -335,8 +340,8 @@ static void MX_FDCAN1_Init(void)
 	sFilterConfig.FilterIndex = 0;
 	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID1 = 0x4FF;
-	sFilterConfig.FilterID2 = 0x000;
+	sFilterConfig.FilterID1 = CANID_ROBOT_VEL;
+	sFilterConfig.FilterID2 = 0b10011110000;
 
 	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
 		Error_Handler();
