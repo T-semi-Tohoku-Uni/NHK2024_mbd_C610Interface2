@@ -99,10 +99,10 @@ void InverseKinematics(robotPosStatus *robotPos, motor wheelMotor[]){
 
 	float wheelParam = (WHEELBASE_LEN + TREAD_LEN) / 2;
 	const float A[4][3] = {
-			{-200,  200, wheelParam},
-			{-200, -200, wheelParam},
 			{ 200, -200, wheelParam},
-			{ 200,  200, wheelParam}
+			{ 200,  200, wheelParam},
+			{-200,  200, wheelParam},
+			{-200, -200, wheelParam}
 	};
 
 	for(uint8_t i=0; i<4; i++){
