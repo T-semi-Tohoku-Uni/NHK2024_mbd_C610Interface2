@@ -341,7 +341,7 @@ static void MX_FDCAN1_Init(void)
 	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
 	sFilterConfig.FilterID1 = CANID_ROBOT_VEL;
-	sFilterConfig.FilterID2 = 0b10011110000;
+	sFilterConfig.FilterID2 = 0b11111111111;
 
 	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
 		Error_Handler();
